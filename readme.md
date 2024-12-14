@@ -61,4 +61,4 @@ http://localhost:3000
 
 ## Contributing
 
-If you would like to contribute to The Last Hope, please fork the repository and submit a pull request with your changes. We welcome contributions from the community and appreciate any feedback or suggestions you may have.
+If you would like to contribute to The Last Hope, please fork the repository and submit a pull request with your changes. We welcome contributions from the community and appreciate any feedback or suggestions you may have related to this project.
