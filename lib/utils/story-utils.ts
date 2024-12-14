@@ -1,38 +1,43 @@
-import type { StoryNode, GameStats } from '../types/game';
+import type { GameStats, StoryNode, PlayerState } from '../types/game';
 
 export const calculateStatsChange = (
   currentStats: GameStats,
-  choice: string
+  choice: string,
+  consequences?: StoryNode['options'][0]['consequences']
 ): Partial<GameStats> => {
-  // Basic stats modification based on choice keywords
   const statsChange: Partial<GameStats> = {};
   
-  if (choice.toLowerCase().includes('fight') || choice.toLowerCase().includes('attack')) {
-    statsChange.power = Math.min(currentStats.power + 5, 100);
-    statsChange.health = Math.max(currentStats.health - 10, 0);
-  }
-  
-  if (choice.toLowerCase().includes('defend') || choice.toLowerCase().includes('protect')) {
-    statsChange.defense = Math.min(currentStats.defense + 5, 100);
-  }
-  
-  if (choice.toLowerCase().includes('heal') || choice.toLowerCase().includes('rest')) {
-    statsChange.health = Math.min(currentStats.health + 15, 100);
+  // Apply direct consequences if provided
+  if (consequences) {
+    if (consequences.health) statsChange.health = Math.max(0, Math.min(100, currentStats.health + consequences.health));
+    if (consequences.power) statsChange.power = Math.max(0, Math.min(100, currentStats.power + consequences.power));
+    if (consequences.defense) statsChange.defense = Math.max(0, Math.min(100, currentStats.defense + consequences.defense));
+    if (consequences.experience) {
+      statsChange.experience = currentStats.experience + consequences.experience;
+      // Level up every 100 experience points
+      const newLevel = Math.floor(statsChange.experience / 100) + 1;
+      if (newLevel > currentStats.level) {
+        statsChange.level = newLevel;
+        statsChange.power = Math.min(100, currentStats.power + 5);
+        statsChange.defense = Math.min(100, currentStats.defense + 5);
+        statsChange.health = 100; // Full health on level up
+      }
+    }
   }
   
   return statsChange;
 };
 
-export const getInitialStoryNode = (): StoryNode => ({
-  description: `In a world ravaged by an unknown catastrophe, you find yourself standing at the crossroads of humanity's fate. The air is thick with tension, and the weight of responsibility rests heavily on your shoulders. Before you lies a path that will determine not just your destiny, but the future of what remains of civilization.`,
-  options: [
-    {
-      option: "Venture into the ruins of the old city to search for survivors and resources",
-      next: 2
-    },
-    {
-      option: "Head towards the reported safe haven in the mountains",
-      next: 3
-    }
-  ]
+export const formatStoryContext = (choices: PlayerState['choices']): string => {
+  return choices.map(choice => 
+    `Chapter ${choice.chapter}, Step ${choice.step}: ${choice.choice} - ${choice.outcome}`
+  ).join('\n');
+};
+
+export const getInitialStats = (): GameStats => ({
+  power: 50,
+  defense: 50,
+  health: 100,
+  experience: 0,
+  level: 1,
 });

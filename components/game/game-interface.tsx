@@ -3,79 +3,81 @@
 import { useState, useEffect } from 'react';
 import { useGameStore } from '../../lib/store/game-store';
 import { generateStoryNode } from '../../lib/services/story-service';
-import { Card } from '../ui/card';
-import { Progress } from '../ui/progress';
-import { StatsDisplay } from '../ui/stats-display';
-import { ChapterHeader } from '../ui/chapter-header';
-import { StoryOptions } from '../ui/story-options';
+import { calculateStatsChange } from '../../lib/utils/story-utils';
+import { GameLayout } from '../layout/game-layout';
+import { LoadingScreen } from '../game/loading-screen';
 import type { StoryNode } from '../../lib/types/game';
 
 export function GameInterface() {
   const [storyNode, setStoryNode] = useState<StoryNode | null>(null);
   const { 
-    currentChapter, 
-    currentStep,
     player,
+    currentStep,
     isLoading,
     setStep,
+    setChapter,
     addChoice,
-    setLoading
+    updateStats,
+    addCombatEvent,
+    setLoading,
+    getStoryContext
   } = useGameStore();
 
   useEffect(() => {
     const loadStoryNode = async () => {
       setLoading(true);
-      const context = `Previous choices: ${player.choices.join(", ")}`;
-      const node = await generateStoryNode(
-        context,
-        currentChapter,
-        currentStep,
-        player.name
-      );
-      setStoryNode(node);
-      setLoading(false);
+      try {
+        const context = getStoryContext();
+        const node = await generateStoryNode(context, player.name);
+        setStoryNode(node);
+        
+        // Update chapter if changed
+        if (node.chapter !== context.currentChapter) {
+          setChapter(node.chapter);
+        }
+        
+        // Record combat encounter
+        if (node.isInCombat) {
+          addCombatEvent(`Encountered ${node.enemyType} with ${node.enemyHealth}% health`);
+        }
+      } catch (error) {
+        console.error('Error loading story node:', error);
+      } finally {
+        setLoading(false);
+      }
     };
 
     loadStoryNode();
-  }, [currentStep, currentChapter, player.name]);
+  }, [currentStep, player.name]); // Add currentStep to dependencies
 
-  const handleChoice = (choice: string, nextStep: number) => {
-    addChoice(choice);
+  const handleChoice = (choice: string, nextStep: number, consequences?: StoryNode['options'][0]['consequences']) => {
+    // Calculate and apply stat changes
+    const statsChange = calculateStatsChange(player.stats, choice, consequences);
+    if (Object.keys(statsChange).length > 0) {
+      updateStats(statsChange);
+    }
+    
+    // Record the choice and its outcome
+    const outcome = consequences 
+      ? `Results: ${Object.entries(consequences)
+          .map(([stat, value]) => `${stat} ${value > 0 ? '+' : ''}${value}`)
+          .join(', ')}`
+      : 'No immediate effects';
+    
+    addChoice(choice, outcome);
     setStep(nextStep);
   };
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800">
-        <div className="text-center space-y-4">
-          <Progress value={30} className="w-[300px]" />
-          <p className="text-white">Generating your story...</p>
-        </div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   if (!storyNode) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 p-8">
-      <div className="max-w-4xl mx-auto space-y-8">
-        <div className="flex items-center justify-between">
-          <ChapterHeader chapter={currentChapter} />
-          <StatsDisplay stats={player.stats} />
-        </div>
-
-        <Card className="p-6 bg-gray-800 border-gray-700">
-          <p className="text-lg text-gray-100 leading-relaxed mb-8">
-            {storyNode.description}
-          </p>
-          
-          <StoryOptions 
-            options={storyNode.options}
-            onSelect={handleChoice}
-          />
-        </Card>
-      </div>
-    </div>
+    <GameLayout
+      storyNode={storyNode}
+      onChoice={handleChoice}
+    />
   );
 }
