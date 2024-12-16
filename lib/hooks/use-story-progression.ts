@@ -24,12 +24,14 @@ export function useStoryProgression() {
         const context = `Player ${player.name} has made the following choices: ${player.choices.join(", ")}. 
                         Current stats - Power: ${player.stats.power}, Defense: ${player.stats.defense}, Health: ${player.stats.health}`;
         
-        const node = await generateStoryNode(
-          context,
+        const contextObj = {
           currentChapter,
           currentStep,
-          player.name
-        );
+          playerChoices: player.choices.map(choice => choice.choice),
+          playerStats: player.stats,
+          combatHistory: [] // Add appropriate combat history if available
+        };
+        const node = await generateStoryNode(contextObj, player.name);
         setStoryNode(node);
       } catch (error) {
         console.error('Error loading story node:', error);
@@ -44,7 +46,8 @@ export function useStoryProgression() {
   const handleChoice = (choice: string, nextStep: number) => {
     const statsChange = calculateStatsChange(player.stats, choice);
     updateStats(statsChange);
-    addChoice(choice);
+    const outcome = `Player chose: ${choice}. Stats change: ${JSON.stringify(statsChange)}`;
+    addChoice(choice, outcome);
     setStep(nextStep);
   };
 
