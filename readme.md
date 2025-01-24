@@ -2,7 +2,7 @@
 
 The Last Hope is a text based RPG game where you can choose your own path and make decisions that will affect the outcome of the game. You will be faced with challenges and obstacles that you must overcome in order to survive. Do you have what it takes to be the last hope?
 
-## Why we built this game?
+## Why did we build this game?
 
 We built this game to provide an interactive and engaging experience for players who enjoy RPG games, but with a unique twist. The Last Hope allows players to make choices that will impact the outcome of the game, making it a truly immersive experience. The story path is not linear and is generated randomly based on the player's choices, using LLM (Large Language Model) technology.
 
