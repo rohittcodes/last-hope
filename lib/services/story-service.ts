@@ -2,7 +2,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { StoryNode, StoryContext } from '../types/game';
 
 const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY || '');
-const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
 const COMBAT_CHANCE = 0.2; // 20% chance of combat
 const CHAPTER_PROGRESS_THRESHOLD = 5; // Number of steps before considering chapter advancement
