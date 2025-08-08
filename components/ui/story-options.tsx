@@ -13,12 +13,12 @@ export function StoryOptions({ options, onSelect }: StoryOptionsProps) {
         <Button
           key={index}
           variant="outline"
-          className="p-4 h-auto text-left hover:bg-gray-700 transition-colors"
+          className="p-4 h-auto text-left hover:bg-gray-700 transition-colors whitespace-normal justify-start items-start"
           onClick={() => onSelect(option.option, option.next, option.consequences)}
         >
-          <div>
+          <div className="flex flex-col w-full">
             <span className="text-sm text-gray-300">Option {index + 1}</span>
-            <p className="mt-2 text-white">{option.option}</p>
+            <p className="mt-2 text-white break-words">{option.option}</p>
             {option.consequences && (
               <div className="mt-2 text-sm">
                 {Object.entries(option.consequences).map(([stat, value]) => (
