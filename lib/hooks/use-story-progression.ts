@@ -23,13 +23,15 @@ export function useStoryProgression() {
       try {
         const context = `Player ${player.name} has made the following choices: ${player.choices.join(", ")}. 
                         Current stats - Power: ${player.stats.power}, Defense: ${player.stats.defense}, Health: ${player.stats.health}`;
-        
+
         const contextObj = {
           currentChapter,
           currentStep,
           playerChoices: player.choices.map(choice => choice.choice),
           playerStats: player.stats,
-          combatHistory: [] // Add appropriate combat history if available
+          combatHistory: [], // Add appropriate combat history if available
+          inventory: player.inventory.map(i => i.name),
+          currency: player.currency
         };
         const node = await generateStoryNode(contextObj, player.name);
         setStoryNode(node);
